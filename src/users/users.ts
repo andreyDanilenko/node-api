@@ -7,6 +7,10 @@ userRouter.use((req, res, next)=> {
     next()
 })
 
+userRouter.get('/', (req, res) => {
+    res.send('login');
+})
+
 userRouter.post('/login', (req, res) => {
     res.send('login');
 })
