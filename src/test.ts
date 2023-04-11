@@ -21,7 +21,7 @@ function Method(
     console.log('propertyKey', propertyKey);
     console.log('target', target);
     console.log('propertyDescriptor', propertyDescriptor);
-    
+
     const oldValue = propertyDescriptor.value;
     propertyDescriptor.value = function (...args: any[]) {
         console.log('...args', args);
@@ -29,17 +29,48 @@ function Method(
     }
 }
 
+function Prop(
+    target: Object,
+    propertyKey: string
+) {
+    let value: number;
+
+    const getter = () => {
+        console.log('Get!');
+        return value;
+    }
+
+    const setter = (newValue: number) => {
+        console.log('Set!');
+        value = newValue
+    }
+
+    Object.defineProperty(target, propertyKey, {
+        get: getter,
+        set: setter,
+    })
+}
+
+function Param(
+    target: Object,
+    propertyKey: string,
+    index: number,
+) {
+
+    console.log('Param', propertyKey, index);
+}
 
 @Logger()
 @Component(2)
 export class User {
-    id: number;
+    @Prop id: number;
 
     @Method
-    updateId(newId: number) {
+    updateId(@Param newId: number) {
         this.id = newId;
         return this.id;
     }
 }
 
 console.log(new User().id);
+console.log(new User().updateId(2));
