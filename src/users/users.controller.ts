@@ -5,15 +5,14 @@ import { BaseController } from '../common/base.controller';
 import { HTTPError } from '../errors/http-error.class';
 import { ILogger } from '../logger/logger.interface';
 import { TYPES } from '../types';
-import { IUserController } from './users.controller.interface';
+import { IUsersController } from './users.controller.interface';
 import { UserLoginDto } from './dto/user-login.dto';
 import { UserRegisterDto } from './dto/user-register.dto';
-import { User } from './user.entity';
 import { UserService } from './users.service';
 import { ValidateMiddleware } from '../common/validate.middleware';
 
 @injectable()
-export class UserController extends BaseController implements IUserController {
+export class UserController extends BaseController implements IUsersController {
 	constructor(
 		@inject(TYPES.ILogger) loggerService: ILogger,
 		@inject(TYPES.UserService) private userService: UserService,
@@ -26,12 +25,26 @@ export class UserController extends BaseController implements IUserController {
 				func: this.register,
 				middleware: [new ValidateMiddleware(UserRegisterDto)],
 			},
-			{ path: '/login', method: 'post', func: this.login },
+			{
+				path: '/login',
+				method: 'post',
+				func: this.login,
+				middleware: [new ValidateMiddleware(UserLoginDto)],
+			},
 		]);
 	}
 
-	login(req: Request<{}, {}, UserLoginDto>, res: Response, next: NextFunction): void {
-		next(new HTTPError(401, 'Auth error', 'login'));
+	async login(
+		{ body }: Request<{}, {}, UserLoginDto>,
+		res: Response,
+		next: NextFunction,
+	): Promise<void> {
+		const result = await this.userService.validateUser(body);
+		if (!result) {
+			return next(new HTTPError(401, 'Auth error', 'login'));
+		}
+
+		this.ok(res, { result });
 	}
 
 	async register(
