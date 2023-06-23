@@ -23,6 +23,8 @@ export abstract class BaseController {
 	}
 
 	public ok<T>(res: Response, message: T): ExpressReturnType {
+		console.log('res');
+
 		return this.send<T>(res, 200, message);
 	}
 

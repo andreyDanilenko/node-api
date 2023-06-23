@@ -12,6 +12,7 @@ import { ValidateMiddleware } from '../common/validate.middleware';
 import { sign } from 'jsonwebtoken';
 import { IConfigService } from '../config/config.service.interface';
 import { IUserService } from './users.service.interface';
+import { AuthGuard } from '../common/auth.guard';
 @injectable()
 export class UserController extends BaseController implements IUsersController {
 	constructor(
@@ -37,7 +38,7 @@ export class UserController extends BaseController implements IUsersController {
 				path: '/info',
 				method: 'get',
 				func: this.info,
-				middleware: [],
+				middleware: [new AuthGuard()],
 			},
 		]);
 	}
@@ -51,7 +52,6 @@ export class UserController extends BaseController implements IUsersController {
 		if (!result) {
 			return next(new HTTPError(401, 'Auth error', 'login'));
 		}
-		console.log(this.configService.get('SECRET'));
 
 		const jwt = await this.signJWT(body.email, this.configService.get('SECRET'));
 		this.ok(res, { jwt });
@@ -69,8 +69,12 @@ export class UserController extends BaseController implements IUsersController {
 		this.ok(res, { email: result.email, name: result.name });
 	}
 
-	async info(req: Request, res: Response, next: NextFunction): Promise<void> {
-		this.ok(res, { email: req.user });
+	async info({ user }: Request, res: Response, next: NextFunction): Promise<void> {
+		// const userInfo = await this.userService.getUserInfo(user);
+		// console.log('user', userInfo);
+		console.log(res);
+
+		this.ok(res, { id: user });
 	}
 
 	private async signJWT(email: string, secret: string): Promise<string> {
